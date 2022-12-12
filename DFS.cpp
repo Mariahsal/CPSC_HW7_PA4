@@ -3,30 +3,42 @@
  * MARIAH SALGADO
  * WILLIAM LUA
  **/
- int dir[4][2] = {{0, 1}, {0, -1}, {1, 0}, { -1, 0}};
+ class Solution {
+public:
+    int hash(int x, int y) {
+        return (x <<8) | y;
+    }
+    void dehash(int v, int &x, int &y) {
+        x = (v >> 8);
+        y = (v & 0xff);
+    }
     int minCost(vector<vector<int>>& grid) {
-        int m = grid.size(), n = grid[0].size(), cost = 0;
-        vector<vector<int>> dp(m, vector<int>(n, INT_MAX));
-        queue<pair<int, int>> q;
-        dfs(grid, 0, 0, dp, cost, q);
-        while (!q.empty()) {
-            cost++;
+        map<int, int> seen;
+        queue<int> q;
+        q.push(0);
+        seen[0] = 0;
+        int ans = 0;
+        int dx[4] = {0, 0, 1, -1};
+        int dy[4] = {1, -1, 0, 0};
+        while(q.size()) {
             int size = q.size();
-            for (int i = 0; i < size; i++) {
-                pair<int, int> p = q.front();
-                int r = p.first, c = p.second;
-                q.pop();
-                for (int j = 0; j < 4; j++)
-                    dfs(grid, r + dir[j][0], c + dir[j][1], dp, cost, q);
+            while(size-- > 0) {
+                int x, y;
+                auto h = q.front();q.pop();
+                dehash(h, x, y);
+                for(int i = 0; i <4; ++i) {
+                    int nx = x + dx[i];
+                    int ny = y + dy[i];
+                    if(nx <0  || ny <0 || nx >= grid.size() || ny >= grid[0].size()) continue;
+                    int nh = hash(nx, ny);
+                    int addmove = grid[x][y] != i + 1;
+                    if(seen.count(nh) && seen[nh] <= seen[h] + addmove) continue;
+                    seen[nh] = seen[h] + addmove;
+                    q.push(nh);
+                }
             }
         }
-        return dp[m - 1][n - 1];
+        int lh = hash(grid.size() - 1, grid[0].size() - 1);
+        return seen[lh];
     }
-    void dfs(vector<vector<int>>& grid, int r, int c, vector<vector<int>>& dp, int cost, queue<pair<int, int>>& q) {
-        int m = grid.size(), n = grid[0].size();
-        if (r < 0 || r >= m || c < 0 || c >= n || dp[r][c] != INT_MAX)return;
-        dp[r][c] = cost;
-        q.push(make_pair(r, c));
-        int nextDir = grid[r][c] - 1;
-        dfs(grid, r + dir[nextDir][0], c + dir[nextDir][1], dp, cost, q);
-    }
+};
