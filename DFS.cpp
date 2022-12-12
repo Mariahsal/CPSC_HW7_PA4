@@ -3,42 +3,29 @@
  * MARIAH SALGADO
  * WILLIAM LUA
  **/
- class Solution {
+class Solution {
 public:
-    int hash(int x, int y) {
-        return (x <<8) | y;
+    int longestIncreasingPath(vector<vector<int>>& matrix) {
+        int h = matrix.size(), w = (h ? matrix[0].size():0);
+        vector<vector<int>> dp(h, vector<int> (w, 0));
+        int maxlen = 0;
+        for (int i = 0; i < h; ++i)
+            for (int j = 0; j < w; ++j)
+                maxlen = max(maxlen, dfsSearch(matrix, dp, INT_MIN, i, j));
+        return maxlen;
     }
-    void dehash(int v, int &x, int &y) {
-        x = (v >> 8);
-        y = (v & 0xff);
-    }
-    int minCost(vector<vector<int>>& grid) {
-        map<int, int> seen;
-        queue<int> q;
-        q.push(0);
-        seen[0] = 0;
-        int ans = 0;
-        int dx[4] = {0, 0, 1, -1};
-        int dy[4] = {1, -1, 0, 0};
-        while(q.size()) {
-            int size = q.size();
-            while(size-- > 0) {
-                int x, y;
-                auto h = q.front();q.pop();
-                dehash(h, x, y);
-                for(int i = 0; i <4; ++i) {
-                    int nx = x + dx[i];
-                    int ny = y + dy[i];
-                    if(nx <0  || ny <0 || nx >= grid.size() || ny >= grid[0].size()) continue;
-                    int nh = hash(nx, ny);
-                    int addmove = grid[x][y] != i + 1;
-                    if(seen.count(nh) && seen[nh] <= seen[h] + addmove) continue;
-                    seen[nh] = seen[h] + addmove;
-                    q.push(nh);
-                }
-            }
-        }
-        int lh = hash(grid.size() - 1, grid[0].size() - 1);
-        return seen[lh];
+    int dfsSearch(vector<vector<int>> &mat, vector<vector<int>> &dp, int prev, int i, int j) {
+        int h = mat.size(), w = mat[0].size();
+        if (prev >= mat[i][j]) return 0;
+        if (dp[i][j])  return dp[i][j];
+        
+        int val = mat[i][j];
+        int d[4] = {
+            i ? dfsSearch(mat, dp, val, i-1, j):0,
+            i+1 < h ? dfsSearch(mat, dp, val, i+1, j):0,
+            j ? dfsSearch(mat, dp, val, i, j-1):0,
+            j+1 < w ? dfsSearch(mat, dp, val, i, j+1):0
+        };
+        return dp[i][j] = max(d[0], max(d[1], max(d[2], d[3]))) + 1;
     }
 };
